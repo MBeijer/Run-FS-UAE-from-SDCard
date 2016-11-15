@@ -1,0 +1,41 @@
+#!/bin/bash
+
+set -eu
+#set -x
+
+function darwin() {
+    diskutil info -all | awk '/Device Identifier: /{d=$3} /Device \/ Media Name: /{n=$0} /^\*\*\*\*/{ if(n ~ "SD.*Reader") print d }'
+}
+
+declare -a NODES
+
+OS="$(uname -s)"
+CARDS=""
+
+case $OS in
+    "Darwin")
+        CARDS="$(darwin)"
+        ;;
+    *)
+        echo "Unsupported OS: $OS"
+        exit 1
+        ;;
+esac
+
+if [ "$CARDS" == "" ]; then
+    echo "No cards found."
+    exit 1
+fi
+
+I=0
+for node in "${CARDS[@]}"; do
+    NODES[$I]="${node}"
+    I=$(( I + 1 ))
+done
+
+if [ ${#NODES[@]} -gt 1 ]; then
+    echo "More than one SD Reader found. $0 expects only one to exist"
+    exit 1
+fi
+
+echo "${NODES[0]}"

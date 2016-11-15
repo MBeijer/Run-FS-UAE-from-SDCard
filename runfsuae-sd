@@ -1,0 +1,20 @@
+#!/bin/bash
+TMPDIR=~/tmp
+if [ ! -d "$TMPDIR" ]; then
+	mkdir $TMPDIR
+fi
+
+SDCARD=`findsd`
+FILE="/dev/$SDCARD"
+
+
+if [ `stat $FILE | awk '{print $3}'` != "brw-rw----" ]; then
+	osascript -e "do shell script \"chown '$USER' '$FILE' && chmod 660 '$FILE'\" with administrator privileges"
+fi
+
+if [ `stat $FILE | awk '{print $3}'` == "brw-rw----" ]; then
+	osascript -e 'display notification "SD Card '$SDCARD'" with title "Finally!"'
+
+	cat ~/Documents/FS-UAE/Configurations/backup.fs-uae | sed -e 's/fakedisk/'$SDCARD'/g'> $TMPDIR/run.fs-uae && /Applications/FS-UAE\ Launcher.app/Contents/FS-UAE.app/Contents/MacOS/fs-uae $1 $TMPDIR/run.fs-uae
+fi
+
