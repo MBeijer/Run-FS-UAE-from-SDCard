@@ -66,11 +66,11 @@ if [ -f "$FILE" ]; then
 		fixperms
 	fi
 
-#	if [ $(checkfileperm) == "brw-rw----" ]; then
-#		osascript -e 'display notification "SD Card '$SDCARD'" with title "Finally!"'
-#
-#		cat ~/Documents/FS-UAE/Configurations/backup.fs-uae | sed -e 's/fakedisk/'$SDCARD'/g'> $TMPDIR/run.fs-uae && /Applications/FS-UAE\ Launcher.app/Contents/FS-UAE.app/Contents/MacOS/fs-uae $1 $TMPDIR/run.fs-uae
-#	fi
+	if [ $(checkfileperm) == "brw-rw----" ]; then
+		osascript -e 'display notification "SD Card '$SDCARD'" with title "Finally!"'
+
+		cat ~/Documents/FS-UAE/Configurations/backup.fs-uae | sed -e 's/fakedisk/'$SDCARD'/g'> $TMPDIR/run.fs-uae && /Applications/FS-UAE\ Launcher.app/Contents/FS-UAE.app/Contents/MacOS/fs-uae $1 $TMPDIR/run.fs-uae
+	fi
 else
 	echo "SD Card not found!"
 	exit 1
