@@ -1,4 +1,4 @@
-# Run-FS-UAE-from-SDCard
+# Run FS-UAE from SD Card
 
 These scripts were made by me to make it more hassle free to mount and run [FS-UAE] from a connected SD card.
 
