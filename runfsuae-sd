@@ -1,20 +1,77 @@
 #!/bin/bash
 TMPDIR=~/tmp
+
 if [ ! -d "$TMPDIR" ]; then
 	mkdir $TMPDIR
 fi
 
+OS="$(uname -s)"
 SDCARD=`findsd`
 FILE="/dev/$SDCARD"
 
+FIXPERM="chown $USER $FILE && chmod 660 $FILE"
 
-if [ `stat $FILE | awk '{print $3}'` != "brw-rw----" ]; then
-	osascript -e "do shell script \"chown '$USER' '$FILE' && chmod 660 '$FILE'\" with administrator privileges"
+function checkpermdarwin() {
+	stat $FILE | awk '{print $3}'
+}
+
+function fixpermdarwin() {
+	osascript -e "do shell script \"'$FIXPERM'\" with administrator privileges"
+}
+
+function checkpermlinux() {
+	stat -c %A $FILE
+}
+
+function fixpermlinux() {
+	exit 1
+}
+
+function checkfileperm() {
+	if [ -f "$FILE" ]; then
+		case $OS in
+			"Darwin")
+				checkpermdarwin
+			;;
+			"Linux")
+				checkpermlinux
+			;;
+			*)
+				echo "Unsupported OS: $OS"
+				exit 1
+			;;
+		esac
+	else
+		exit 1
+	fi
+}
+
+function fixperms() {
+	case $OS in
+		"Darwin")
+                        fixpermdarwin
+                ;;
+                "Linux")
+                        fixpermlinux
+                ;;
+                *)
+                        echo "Unsupported OS: $OS"
+                        exit 1
+                ;;
+	esac
+}
+
+if [ -f "$FILE" ]; then
+	if [ $(checkfileperm) != "brw-rw----" ]; then
+		fixperms
+	fi
+
+#	if [ $(checkfileperm) == "brw-rw----" ]; then
+#		osascript -e 'display notification "SD Card '$SDCARD'" with title "Finally!"'
+#
+#		cat ~/Documents/FS-UAE/Configurations/backup.fs-uae | sed -e 's/fakedisk/'$SDCARD'/g'> $TMPDIR/run.fs-uae && /Applications/FS-UAE\ Launcher.app/Contents/FS-UAE.app/Contents/MacOS/fs-uae $1 $TMPDIR/run.fs-uae
+#	fi
+else
+	echo "SD Card not found!"
+	exit 1
 fi
-
-if [ `stat $FILE | awk '{print $3}'` == "brw-rw----" ]; then
-	osascript -e 'display notification "SD Card '$SDCARD'" with title "Finally!"'
-
-	cat ~/Documents/FS-UAE/Configurations/backup.fs-uae | sed -e 's/fakedisk/'$SDCARD'/g'> $TMPDIR/run.fs-uae && /Applications/FS-UAE\ Launcher.app/Contents/FS-UAE.app/Contents/MacOS/fs-uae $1 $TMPDIR/run.fs-uae
-fi
-
